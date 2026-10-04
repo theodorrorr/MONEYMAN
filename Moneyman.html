@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Moneyman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #000;
+  --card: #151515;
+  --card-2: #242424;
+  --red-dark: #730000;
+  --red-card: #6d0000;
+  --red: #f00;
+  --red-fill: #9e0000;
+  --yellow: #fc0;
+  --muted: #999797;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #fff;
+  font: 400 calc(var(--u, 1px) * 13) / 1.25 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+svg { display: block; flex: none; }
+:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+p { margin: 0; }
+
+.frame {
+  --u: calc(100cqw / 412);
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 560px);
+  min-height: 100dvh;
+  margin-inline: auto;
+  background: var(--bg);
+  font-family: var(--font);
+}
+
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 calc(var(--u) * 7) calc(var(--u) * 10);
+}
+
+.top {
+  display: grid;
+  grid-template-rows: calc(var(--u) * 33) calc(var(--u) * 80) calc(var(--u) * 120) calc(var(--u) * 112);
+  height: calc(var(--u) * 428 + env(safe-area-inset-top, 0px));
+  margin-inline: calc(var(--u) * -7);
+  padding: calc(var(--u) * 51 + env(safe-area-inset-top, 0px)) calc(var(--u) * 23) 0;
+  background: linear-gradient(146.83deg, #242424 0%, #121212 17.43%, #000 100%) 0 calc(var(--u) * -15) / 100% calc(var(--u) * 447) no-repeat;
+  border-radius: 0 0 calc(var(--u) * 50) calc(var(--u) * 50);
+}
+.net-label {
+  text-align: center;
+  font-size: calc(var(--u) * 20);
+  line-height: calc(var(--u) * 24);
+  color: var(--muted);
+}
+.net-value {
+  text-align: center;
+  white-space: nowrap;
+  font-size: calc(var(--u) * 50);
+  font-weight: 600;
+  line-height: calc(var(--u) * 61);
+  color: #fffefe;
+}
+
+.budget {
+  position: relative;
+  height: calc(var(--u) * 110);
+  margin-bottom: 0;
+  background: var(--red-dark);
+  border-radius: calc(var(--u) * 28);
+  overflow: hidden;
+  font-size: calc(var(--u) * 15);
+}
+.budget-title,
+.budget-period,
+.budget-limit { position: absolute; margin: 0; white-space: nowrap; }
+.budget-title  { left: calc(var(--u) * 27); top: calc(var(--u) * 20); line-height: calc(var(--u) * 18); }
+.budget-period { left: calc(var(--u) * 258); top: calc(var(--u) * 19); line-height: calc(var(--u) * 20); }
+.budget-toggle {
+  position: absolute;
+  left: calc(var(--u) * 318);
+  top: calc(var(--u) * 20);
+  width: calc(var(--u) * 17.49);
+  height: calc(var(--u) * 18.4);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.budget-toggle svg { width: 100%; height: 100%; }
+.budget-limit {
+  left: calc(var(--u) * 26);
+  top: calc(var(--u) * 47);
+  font-size: calc(var(--u) * 32);
+  font-weight: 600;
+  line-height: calc(var(--u) * 38);
+}
+.meter {
+  position: absolute;
+  left: calc(var(--u) * 186);
+  top: calc(var(--u) * 52);
+  width: calc(var(--u) * 154);
+  height: calc(var(--u) * 27.72);
+  background: #fff;
+  border-radius: calc(var(--u) * 105);
+  box-shadow: 0 calc(var(--u) * 5) calc(var(--u) * 4) rgba(0, 0, 0, .25);
+  overflow: hidden;
+  font-size: calc(var(--u) * 10);
+}
+.meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--progress);
+  background: var(--red-fill);
+  border-radius: inherit;
+}
+.meter-used, .meter-pct {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  line-height: calc(var(--u) * 13.35);
+}
+.meter-used { left: calc(var(--u) * 13.27); font-weight: 600; color: #fff; }
+.meter-pct  { right: calc(var(--u) * 10); font-weight: 700; color: var(--red-dark); }
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, calc(var(--u) * 114));
+  gap: calc(var(--u) * 9);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(var(--u) * 114);
+  height: calc(var(--u) * 112);
+  padding: 0;
+  background: var(--card-2);
+  border: 0;
+  border-radius: calc(var(--u) * 28);
+  color: inherit;
+  font: inherit;
+  font-size: calc(var(--u) * 13);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+.action:hover { background: #2e2e2e; }
+.action svg {
+  margin-top: calc(var(--u) * var(--it));
+  width: calc(var(--u) * var(--ih));
+  height: calc(var(--u) * var(--ih));
+}
+.action span {
+  margin-top: calc(var(--u) * var(--lt));
+  line-height: calc(var(--u) * 18);
+  white-space: nowrap;
+}
+
+.invest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: calc(var(--u) * 91);
+  margin-top: calc(var(--u) * 7);
+  padding-top: calc(var(--u) * 13);
+  background: var(--card);
+  border-radius: calc(var(--u) * 28);
+  font-size: calc(var(--u) * 13);
+  overflow: hidden;
+}
+.invest span { line-height: calc(var(--u) * 18); }
+.invest strong {
+  margin-top: calc(var(--u) * -5);
+  font-size: calc(var(--u) * 40);
+  font-weight: 600;
+  line-height: calc(var(--u) * 43);
+  white-space: nowrap;
+}
+
+.stats {
+  position: relative;
+  height: calc(var(--u) * 170);
+  margin-top: calc(var(--u) * 7);
+  background: linear-gradient(180.83deg, #151515 0%, #000 100%);
+  border-radius: calc(var(--u) * 28);
+  overflow: hidden;
+}
+.chart {
+  position: absolute;
+  left: calc(var(--u) * 36);
+  top: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(3, calc(var(--u) * 44));
+  column-gap: calc(var(--u) * 17);
+  align-items: end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--u) * 6);
+  font-size: calc(var(--u) * 11);
+  line-height: calc(var(--u) * 13);
+  white-space: nowrap;
+}
+.bar::after {
+  content: "";
+  width: 100%;
+  height: calc(var(--u) * var(--h));
+  background: var(--c);
+  border-radius: calc(var(--u) * var(--r, 4)) calc(var(--u) * var(--r, 4)) 0 0;
+}
+.bar > span { order: -1; }
+
+.legend {
+  position: absolute;
+  left: calc(var(--u) * 270);
+  top: calc(var(--u) * 46);
+  display: grid;
+  gap: calc(var(--u) * 12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(var(--u) * 11);
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 7);
+  height: calc(var(--u) * 18);
+}
+.legend li::before {
+  content: "";
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+  background: var(--c);
+}
+
+.cash {
+  display: grid;
+  grid-template-columns: repeat(2, calc(var(--u) * 196));
+  gap: calc(var(--u) * 6);
+  margin-top: calc(var(--u) * 10);
+}
+.cash-in, .cash-out {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: calc(var(--u) * 14) auto;
+  justify-content: center;
+  align-content: start;
+  align-items: center;
+  column-gap: calc(var(--u) * 6);
+  height: calc(var(--u) * 116);
+  border-radius: calc(var(--u) * 30);
+  text-align: center;
+  overflow: hidden;
+}
+.cash-in  { background: var(--red-card); padding-top: calc(var(--u) * 31); }
+.cash-out { background: var(--card);     padding-top: calc(var(--u) * 28); }
+.cash-label { grid-area: 1 / 1; font-size: calc(var(--u) * 11); white-space: nowrap; }
+.cash-in svg, .cash-out svg { grid-area: 1 / 2; width: calc(var(--u) * 14); height: calc(var(--u) * 14); }
+.cash-amount {
+  grid-area: 2 / 1 / 3 / -1;
+  font-size: calc(var(--u) * 28);
+  line-height: calc(var(--u) * 34);
+  white-space: nowrap;
+}
+
+.nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  height: calc(var(--u) * 78 + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #222;
+  border-radius: calc(var(--u) * 22) calc(var(--u) * 22) 0 0;
+  color: #fff;
+  font-size: calc(var(--u) * 24);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="frame">
+<main class="app">
+
+  <section class="top" aria-label="Ringkasan">
+    <p class="net-label">Net Worth</p>
+    <p class="net-value">Rp 1.300.000</p>
+
+    <div class="budget" style="--progress: 60.4%">
+      <span class="budget-title">Budget</span>
+      <span class="budget-period">Monthly</span>
+      <button class="budget-toggle" type="button" aria-label="Change budget period">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <p class="budget-limit">500.000</p>
+      <div class="meter" role="progressbar" aria-label="Budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <div class="meter-fill"></div>
+        <span class="meter-used">250.000</span>
+        <span class="meter-pct">50%</span>
+      </div>
+    </div>
+
+    <ul class="actions">
+      <li>
+        <button class="action" type="button" style="--it: 24; --ih: 40; --lt: 9">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          <span>Transaction</span>
+        </button>
+      </li>
+      <li>
+        <button class="action" type="button" style="--it: 23; --ih: 40; --lt: 10">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+          <span>Income</span>
+        </button>
+      </li>
+      <li>
+        <button class="action" type="button" style="--it: 15; --ih: 48; --lt: 11">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+          <span>Investment</span>
+        </button>
+      </li>
+    </ul>
+  </section>
+
+  <section class="invest" aria-label="Investment total">
+    <span>Investment Total</span>
+    <strong>Rp 124.500</strong>
+  </section>
+
+  <section class="stats" aria-label="Spending by category">
+    <ul class="chart">
+      <li class="bar" style="--h: 103; --r: 6; --c: var(--red)"><span>Rp 130.000</span></li>
+      <li class="bar" style="--h: 134; --c: #fff"><span>Rp 150.000</span></li>
+      <li class="bar" style="--h: 76; --c: var(--yellow)"><span>Rp 80.000</span></li>
+    </ul>
+    <ul class="legend">
+      <li style="--c: #fb0000">Foods</li>
+      <li style="--c: #d9d9d9">Transport</li>
+      <li style="--c: var(--yellow)">Needs</li>
+    </ul>
+  </section>
+
+  <div class="cash">
+    <section class="cash-in" aria-label="Money income">
+      <p class="cash-label">Money Income</p>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17M17 17H7V7"/></svg>
+      <p class="cash-amount">Rp 1.000.000</p>
+    </section>
+
+    <section class="cash-out" aria-label="Expenses">
+      <p class="cash-label">Expenses</p>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      <p class="cash-amount">Rp 250.000</p>
+    </section>
+  </div>
+
+</main>
+
+<a class="nav" href="#">Switch to Workout</a>
+</div>
+</body>
+</html>
