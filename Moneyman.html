@@ -29,12 +29,13 @@ body {
   margin: 0;
   background: var(--bg);
   color: #fff;
-  font: 400 calc(var(--u, 1px) * 13) / 1.25 var(--font);
+  font: 400 13px / 1.25 var(--font);
   -webkit-font-smoothing: antialiased;
 }
+body.modal-open { overflow: hidden; }
 svg { display: block; flex: none; }
-:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 p { margin: 0; }
+:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 .frame {
   --u: calc(100cqw / 412);
@@ -44,15 +45,12 @@ p { margin: 0; }
   width: min(100%, 560px);
   min-height: 100dvh;
   margin-inline: auto;
-  background: var(--bg);
-  font-family: var(--font);
 }
 
 .app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
   padding: 0 calc(var(--u) * 7) calc(var(--u) * 10);
 }
 
@@ -83,7 +81,6 @@ p { margin: 0; }
 .budget {
   position: relative;
   height: calc(var(--u) * 110);
-  margin-bottom: 0;
   background: var(--red-dark);
   border-radius: calc(var(--u) * 28);
   overflow: hidden;
@@ -91,7 +88,7 @@ p { margin: 0; }
 }
 .budget-title,
 .budget-period,
-.budget-limit { position: absolute; margin: 0; white-space: nowrap; }
+.budget-limit { position: absolute; white-space: nowrap; }
 .budget-title  { left: calc(var(--u) * 27); top: calc(var(--u) * 20); line-height: calc(var(--u) * 18); }
 .budget-period { left: calc(var(--u) * 258); top: calc(var(--u) * 19); line-height: calc(var(--u) * 20); }
 .budget-toggle {
@@ -165,9 +162,13 @@ p { margin: 0; }
   font-size: calc(var(--u) * 13);
   text-align: center;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color .15s;
 }
-.action:hover { background: #2e2e2e; }
+@media (hover: hover) {
+  .action:hover { background: #2e2e2e; }
+}
 .action svg {
   margin-top: calc(var(--u) * var(--it));
   width: calc(var(--u) * var(--ih));
@@ -210,9 +211,7 @@ p { margin: 0; }
 }
 .chart {
   position: absolute;
-  left: calc(var(--u) * 36);
-  top: 0;
-  bottom: 0;
+  inset: 0 auto 0 calc(var(--u) * 36);
   display: grid;
   grid-template-columns: repeat(3, calc(var(--u) * 44));
   column-gap: calc(var(--u) * 17);
@@ -310,8 +309,237 @@ p { margin: 0; }
   text-decoration: none;
 }
 
+.tp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, .6);
+}
+.tp-overlay[hidden] { display: none; }
+.tp-overlay:not([hidden]) { animation: tp-fade .2s ease-out; }
+.tp-overlay:not([hidden]) .tp-wrap { animation: tp-slide .3s cubic-bezier(.2, .8, .2, 1); }
+
+.tp-wrap {
+  container-type: inline-size;
+  width: min(100%, 560px, 72dvh);
+}
+.tp-wrap::after {
+  content: "";
+  display: block;
+  height: env(safe-area-inset-bottom, 0px);
+  background: #151515;
+}
+
+.tp, .tp * { box-sizing: border-box; }
+.tp {
+  --u: calc(100cqw / 412);
+  position: relative;
+  height: calc(var(--u) * 571);
+  background: #151515;
+  border-radius: calc(var(--u) * 60) calc(var(--u) * 60) 0 0;
+  color: #fff;
+  font-family: var(--font);
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.tp [hidden] { display: none !important; }
+.tp button {
+  font-family: inherit;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.tp-view { position: absolute; inset: 0; }
+
+.tp-display {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--u) * 201);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--u) * 30) calc(var(--u) * 20) 0;
+  background: rgba(0, 0, 0, .42);
+  border-radius: 0 0 calc(var(--u) * 50) calc(var(--u) * 50);
+}
+.tp-amount {
+  max-width: 100%;
+  font-size: calc(var(--u) * var(--fs, 48));
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.tp-keys {
+  position: absolute;
+  left: calc(var(--u) * 13);
+  top: calc(var(--u) * 211);
+  width: calc(var(--u) * 385);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--u) * 16) calc(var(--u) * 15);
+}
+.tp-key {
+  height: calc(var(--u) * 56);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #3f3f3f 0%, #0b0b0b 100%);
+  border-radius: calc(var(--u) * 5);
+  font-size: calc(var(--u) * 24);
+  font-weight: 700;
+  transition: transform .08s, filter .08s;
+}
+.tp-key svg { width: calc(var(--u) * 24); height: calc(var(--u) * 24); }
+.tp-key:active { transform: scale(.96); filter: brightness(1.3); }
+
+.tp-primary {
+  height: calc(var(--u) * 56);
+  background: #b88d00;
+  border-radius: calc(var(--u) * 5);
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+  transition: opacity .15s, transform .08s;
+}
+.tp-primary:active:not(:disabled) { transform: scale(.98); }
+.tp-primary:disabled { opacity: .4; cursor: not-allowed; }
+.tp-keys .tp-primary { grid-column: 1 / span 3; }
+
+.tp-head {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--u) * 96);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--u) * 2);
+  padding-top: calc(var(--u) * 6);
+  background: rgba(0, 0, 0, .42);
+  border-radius: 0 0 calc(var(--u) * 36) calc(var(--u) * 36);
+}
+.tp-head small {
+  font-size: calc(var(--u) * 13);
+  letter-spacing: .02em;
+  color: var(--muted);
+}
+.tp-head strong {
+  font-size: calc(var(--u) * 32);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tp-back {
+  position: absolute;
+  left: calc(var(--u) * 20);
+  top: calc(var(--u) * 14);
+  z-index: 2;
+  width: calc(var(--u) * 36);
+  height: calc(var(--u) * 36);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: none;
+  border-radius: 50%;
+}
+.tp-back svg { width: calc(var(--u) * 24); height: calc(var(--u) * 24); }
+
+.tp-cats {
+  position: absolute;
+  left: calc(var(--u) * 13);
+  top: calc(var(--u) * 110);
+  width: calc(var(--u) * 385);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: calc(var(--u) * 172);
+  gap: calc(var(--u) * 14);
+}
+.tp-cat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 3);
+  padding: 0;
+  background: linear-gradient(180deg, #252525 0%, #1a1a1a 100%);
+  border-radius: calc(var(--u) * 28);
+  box-shadow: inset 0 0 0 calc(var(--u) * 2) transparent;
+  transition: background .2s, box-shadow .2s, transform .1s;
+  animation: tp-rise .35s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+.tp-cat:active { transform: scale(.97); }
+
+.tp-badge {
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 80);
+  height: calc(var(--u) * 80);
+  margin-bottom: calc(var(--u) * 10);
+  border-radius: 50%;
+  color: var(--a);
+  background: color-mix(in srgb, var(--a) 16%, transparent);
+  transition: background-color .2s, color .2s;
+}
+.tp-badge svg { width: calc(var(--u) * 40); height: calc(var(--u) * 40); }
+.tp-name {
+  font-size: calc(var(--u) * 19);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.tp-sub {
+  font-size: calc(var(--u) * 12);
+  color: var(--muted);
+}
+.tp-check {
+  position: absolute;
+  top: calc(var(--u) * 14);
+  right: calc(var(--u) * 14);
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 26);
+  border-radius: 50%;
+  background: var(--a);
+  color: var(--on);
+  opacity: 0;
+  scale: .5;
+  transition: opacity .15s, scale .25s cubic-bezier(.3, 1.6, .5, 1);
+}
+.tp-check svg { width: calc(var(--u) * 15); height: calc(var(--u) * 15); }
+
+.tp-cat[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--a) 13%, #1a1a1a);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 2) var(--a),
+    0 0 calc(var(--u) * 22) color-mix(in srgb, var(--a) 24%, transparent);
+}
+.tp-cat[aria-pressed="true"] .tp-badge { background: var(--a); color: var(--on); }
+.tp-cat[aria-pressed="true"] .tp-check { opacity: 1; scale: 1; }
+
+.tp-confirm {
+  position: absolute;
+  left: calc(var(--u) * 13);
+  top: calc(var(--u) * 481);
+  width: calc(var(--u) * 385);
+  height: calc(var(--u) * 66);
+}
+
+@keyframes tp-fade  { from { opacity: 0; } }
+@keyframes tp-slide { from { transform: translateY(100%); } }
+@keyframes tp-rise  { from { opacity: 0; transform: translateY(8%) scale(.96); } }
+
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 </style>
 </head>
@@ -340,7 +568,7 @@ p { margin: 0; }
 
     <ul class="actions">
       <li>
-        <button class="action" type="button" style="--it: 24; --ih: 40; --lt: 9">
+        <button class="action" type="button" data-action="transaction" style="--it: 24; --ih: 40; --lt: 9">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           <span>Transaction</span>
         </button>
@@ -396,5 +624,195 @@ p { margin: 0; }
 
 <a class="nav" href="#">Switch to Workout</a>
 </div>
+
+<div class="tp-overlay" id="tpOverlay" hidden>
+  <div class="tp-wrap" role="dialog" aria-modal="true" aria-label="Add transaction">
+    <div class="tp" id="tp">
+
+      <section class="tp-view" id="tpKeypad">
+        <div class="tp-display">
+          <p class="tp-amount" id="tpAmount">Rp 0</p>
+        </div>
+
+        <div class="tp-keys">
+          <button class="tp-key" type="button" data-key="1">1</button>
+          <button class="tp-key" type="button" data-key="2">2</button>
+          <button class="tp-key" type="button" data-key="3">3</button>
+          <button class="tp-key" type="button" data-key="4">4</button>
+          <button class="tp-key" type="button" data-key="5">5</button>
+          <button class="tp-key" type="button" data-key="6">6</button>
+          <button class="tp-key" type="button" data-key="7">7</button>
+          <button class="tp-key" type="button" data-key="8">8</button>
+          <button class="tp-key" type="button" data-key="9">9</button>
+          <button class="tp-key" type="button" data-key="0">0</button>
+          <button class="tp-key" type="button" data-key="000">000</button>
+          <button class="tp-key" type="button" data-key="del" aria-label="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Z"/><path d="m18 9-6 6M12 9l6 6"/></svg>
+          </button>
+          <button class="tp-primary" type="button" id="tpReview" disabled>Review Transaction</button>
+        </div>
+      </section>
+
+      <section class="tp-view" id="tpCategory" hidden>
+        <div class="tp-head">
+          <small>Choose a category</small>
+          <strong id="tpSummary">Rp 0</strong>
+        </div>
+
+        <button class="tp-back" type="button" id="tpBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+
+        <div class="tp-cats">
+          <button class="tp-cat" type="button" data-cat="Foods" aria-pressed="false" style="--a: #fb0000; --on: #fff; --i: 0">
+            <span class="tp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></span>
+            <span class="tp-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></span>
+            <span class="tp-name">Foods</span>
+          </button>
+
+          <button class="tp-cat" type="button" data-cat="Transport" aria-pressed="false" style="--a: #d9d9d9; --on: #000; --i: 1">
+            <span class="tp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></span>
+            <span class="tp-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></span>
+            <span class="tp-name">Transport</span>
+          </button>
+
+          <button class="tp-cat" type="button" data-cat="Needs" aria-pressed="false" style="--a: #fc0; --on: #000; --i: 2">
+            <span class="tp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></span>
+            <span class="tp-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>
+            <span class="tp-name">Needs</span>
+          
+          </button>
+
+          <button class="tp-cat" type="button" data-cat="Wants" aria-pressed="false" style="--a: #ff8a00; --on: #000; --i: 3">
+            <span class="tp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></span>
+            <span class="tp-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg></span>
+            <span class="tp-name">Wants</span>
+            
+          </button>
+        </div>
+
+        <button class="tp-primary tp-confirm" type="button" id="tpConfirm" disabled>Confirm</button>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const overlay = $("tpOverlay");
+  const root = $("tp");
+  const keypad = $("tpKeypad");
+  const category = $("tpCategory");
+  const amountEl = $("tpAmount");
+  const summaryEl = $("tpSummary");
+  const reviewBtn = $("tpReview");
+  const confirmBtn = $("tpConfirm");
+  const openBtn = document.querySelector('[data-action="transaction"]');
+  const cats = [...root.querySelectorAll(".tp-cat")];
+
+  const MAX_DIGITS = 12;
+  let digits = "";
+  let selected = null;
+
+  const money = () => "Rp " + (digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "0");
+
+  const render = () => {
+    const len = digits.length;
+    amountEl.textContent = money();
+    amountEl.style.setProperty("--fs", len > 11 ? 30 : len > 9 ? 36 : len > 7 ? 42 : 48);
+    reviewBtn.disabled = !digits;
+  };
+
+  const setView = (name) => {
+    keypad.hidden = name !== "keypad";
+    category.hidden = name !== "category";
+  };
+
+  const select = (name) => {
+    selected = name;
+    cats.forEach((btn) => btn.setAttribute("aria-pressed", String(btn.dataset.cat === name)));
+    confirmBtn.disabled = !name;
+  };
+
+  const reset = () => {
+    digits = "";
+    select(null);
+    render();
+    setView("keypad");
+  };
+
+  const open = () => {
+    overlay.hidden = false;
+    document.body.classList.add("modal-open");
+  };
+
+  const close = () => {
+    overlay.hidden = true;
+    document.body.classList.remove("modal-open");
+    reset();
+  };
+
+  const press = (key) => {
+    if (key === "del") {
+      digits = digits.slice(0, -1);
+    } else {
+      if (!digits && (key === "0" || key === "000")) return;
+      if (digits.length + key.length > MAX_DIGITS) return;
+      digits += key;
+    }
+    render();
+  };
+
+  const review = () => {
+    if (!digits) return;
+    summaryEl.textContent = money();
+    setView("category");
+  };
+
+  const confirm = () => {
+    if (!digits || !selected) return;
+    root.dispatchEvent(new CustomEvent("transactionconfirm", {
+      bubbles: true,
+      detail: { amount: Number(digits), category: selected }
+    }));
+    close();
+  };
+
+  openBtn.addEventListener("click", open);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  reviewBtn.addEventListener("click", review);
+  confirmBtn.addEventListener("click", confirm);
+  $("tpBack").addEventListener("click", () => setView("keypad"));
+
+  root.addEventListener("click", (e) => {
+    const key = e.target.closest(".tp-key");
+    if (key) return press(key.dataset.key);
+    const cat = e.target.closest(".tp-cat");
+    if (cat) select(cat.dataset.cat);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (overlay.hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+    const onKeypad = !keypad.hidden;
+
+    if (e.key === "Escape") {
+      onKeypad ? close() : setView("keypad");
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      onKeypad ? review() : confirm();
+    } else if (onKeypad && e.key === "Backspace") {
+      e.preventDefault();
+      press("del");
+    } else if (onKeypad && /^\d$/.test(e.key)) {
+      e.preventDefault();
+      press(e.key);
+    }
+  });
+
+  render();
+})();
+</script>
 </body>
 </html>
