@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Moneyn</title>
+<title>RONOVA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -294,7 +294,7 @@ p { margin: 0; }
   white-space: nowrap;
 }
 
-.nav {
+.nav [hidden] { display: none; 
   position: sticky;
   bottom: 0;
   z-index: 10;
@@ -507,6 +507,10 @@ p { margin: 0; }
   width: calc(var(--u) * 52);
   height: calc(var(--u) * 52);
 }
+.tp-cat[data-income-category] svg {
+  width: calc(var(--u) * 40);
+  height: calc(var(--u) * 40);
+}
 .tp-cat:active { transform: scale(.97); }
 .tp-cat[aria-pressed="true"] {
   background: #2c2a1f;
@@ -589,7 +593,7 @@ body.modal-open {
         </button>
       </li>
       <li>
-        <button class="action" type="button" style="--it: 23; --ih: 40; --lt: 10">
+        <button class="action" type="button" data-action="income" style="--it: 23; --ih: 40; --lt: 10">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
           <span>Income</span>
         </button>
@@ -697,31 +701,74 @@ body.modal-open {
 
         <button class="tp-primary tp-confirm" type="button" id="tpConfirm" disabled>Confirm</button>
       </section>
+
+      <section class="tp-view" id="incomeCategory" aria-label="Income category" hidden>
+        <div class="tp-head">
+          <small>Choose a category</small>
+          <strong id="incomeReviewAmount">Rp 0</strong>
+        </div>
+
+        <button class="tp-back" type="button" id="incomeBack" aria-label="Back to amount">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+
+        <div class="tp-cats">
+          <button class="tp-cat" type="button" data-income-category="investment" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 6-7"/><path d="M16 7h5v5"/></svg>
+            <span>Investment</span>
+          </button>
+          <button class="tp-cat" type="button" data-income-category="else" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+            <span>Else</span>
+          </button>
+          <button class="tp-cat" type="button" data-income-category="work" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+            <span>Work</span>
+          </button>
+          <button class="tp-cat" type="button" data-income-category="parents" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+            <span>Parents</span>
+          </button>
+        </div>
+
+        <input class="tp-note" id="incomeDescription" type="text" maxlength="60" placeholder="Add a description (optional)" autocomplete="off" enterkeyhint="done">
+
+        <button class="tp-primary tp-confirm" id="incomeConfirm" type="button" disabled>Confirm</button>
+      </section>
     </div>
   </div>
 </div>
 
-<a class="nav" href="#">Switch to Workout</a>
-</div>
+<a class="nav" href="#" hidden>Switch to Workout</a>
 
 <script>
 (function () {
   var root = document.getElementById("tp");
   var overlay = document.getElementById("tpOverlay");
+  var dialog = overlay.querySelector('[role="dialog"]');
   var transactionBtn = document.querySelector('[data-action="transaction"]');
+  var incomeBtn = document.querySelector('[data-action="income"]');
   var keypad = document.getElementById("tpKeypad");
   var category = document.getElementById("tpCategory");
+  var incomeCategory = document.getElementById("incomeCategory");
+  var incomeBackBtn = document.getElementById("incomeBack");
   var amountEl = document.getElementById("tpAmount");
   var reviewBtn = document.getElementById("tpReview");
   var confirmBtn = document.getElementById("tpConfirm");
   var backBtn = document.getElementById("tpBack");
   var summaryEl = document.getElementById("tpSummary");
   var noteEl = document.getElementById("tpNote");
-  var cats = Array.prototype.slice.call(root.querySelectorAll(".tp-cat"));
+  var cats = Array.prototype.slice.call(root.querySelectorAll("[data-cat]"));
+  var incomeReviewAmount = document.getElementById("incomeReviewAmount");
+  var incomeDescription = document.getElementById("incomeDescription");
+  var incomeConfirm = document.getElementById("incomeConfirm");
+  var incomeCards = Array.prototype.slice.call(root.querySelectorAll("[data-income-category]"));
 
   var MAX_DIGITS = 12;
   var digits = "";
   var selected = null;
+  var mode = "transaction";
+  var incomeData = { amount: 0, description: "", category: null };
 
   function format(value) {
     return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -738,7 +785,11 @@ body.modal-open {
     reviewBtn.disabled = !digits;
   }
 
-  function openTransaction() {
+  function openCalculator(nextMode) {
+    mode = nextMode;
+    reviewBtn.textContent = mode === "income" ? "Review Income" : "Review Transaction";
+    dialog.setAttribute("aria-label", mode === "income" ? "Add income" : "Add transaction");
+    render();
     overlay.hidden = false;
     document.body.classList.add("modal-open");
   }
@@ -746,11 +797,17 @@ body.modal-open {
   function closeTransaction() {
     digits = "";
     noteEl.value = "";
+    incomeDescription.value = "";
     selected = null;
+    incomeData = { amount: 0, description: "", category: null };
     cats.forEach(function (btn) {
       btn.setAttribute("aria-pressed", "false");
     });
+    incomeCards.forEach(function (card) {
+      card.setAttribute("aria-pressed", "false");
+    });
     confirmBtn.disabled = true;
+    incomeConfirm.disabled = true;
     render();
     showKeypad();
     overlay.hidden = true;
@@ -770,13 +827,33 @@ body.modal-open {
 
   function showCategory() {
     if (!digits) return;
+    if (mode === "income") {
+      openIncomeCategory(Number(digits));
+      return;
+    }
     summaryEl.textContent = "Rp " + format(digits);
     keypad.hidden = true;
     category.hidden = false;
   }
 
+  function openIncomeCategory(amount) {
+    incomeData.amount = amount;
+    incomeData.description = "";
+    incomeData.category = null;
+    incomeReviewAmount.textContent = "Rp " + format(String(amount));
+    incomeDescription.value = "";
+    incomeCards.forEach(function (card) {
+      card.setAttribute("aria-pressed", "false");
+    });
+    incomeConfirm.disabled = true;
+    keypad.hidden = true;
+    category.hidden = true;
+    incomeCategory.hidden = false;
+  }
+
   function showKeypad() {
     category.hidden = true;
+    incomeCategory.hidden = true;
     keypad.hidden = false;
   }
 
@@ -786,6 +863,14 @@ body.modal-open {
       btn.setAttribute("aria-pressed", String(btn.dataset.cat === name));
     });
     confirmBtn.disabled = !selected;
+  }
+
+  function selectIncome(name) {
+    incomeData.category = name;
+    incomeCards.forEach(function (card) {
+      card.setAttribute("aria-pressed", String(card.dataset.incomeCategory === name));
+    });
+    incomeConfirm.disabled = !name;
   }
 
   function confirm() {
@@ -799,8 +884,25 @@ body.modal-open {
     closeTransaction();
   }
 
+  function confirmIncome() {
+    if (!incomeData.category) return;
+    incomeData.description = incomeDescription.value.trim();
+    root.dispatchEvent(new CustomEvent("incomeconfirm", {
+      detail: {
+        amount: incomeData.amount,
+        description: incomeData.description,
+        category: incomeData.category
+      },
+      bubbles: true
+    }));
+    closeTransaction();
+  }
+
   if (transactionBtn) {
-    transactionBtn.addEventListener("click", openTransaction);
+    transactionBtn.addEventListener("click", function () { openCalculator("transaction"); });
+  }
+  if (incomeBtn) {
+    incomeBtn.addEventListener("click", function () { openCalculator("income"); });
   }
 
   overlay.addEventListener("click", function (event) {
@@ -813,10 +915,15 @@ body.modal-open {
 
   reviewBtn.addEventListener("click", showCategory);
   backBtn.addEventListener("click", showKeypad);
+  incomeBackBtn.addEventListener("click", showKeypad);
   cats.forEach(function (btn) {
     btn.addEventListener("click", function () { select(btn.dataset.cat); });
   });
+  incomeCards.forEach(function (card) {
+    card.addEventListener("click", function () { selectIncome(card.dataset.incomeCategory); });
+  });
   confirmBtn.addEventListener("click", confirm);
+  incomeConfirm.addEventListener("click", confirmIncome);
 
   document.addEventListener("keydown", function (e) {
     if (overlay.hidden) return;
@@ -829,7 +936,11 @@ body.modal-open {
       else if (e.key === "Escape") { closeTransaction(); e.preventDefault(); }
     } else {
       if (e.key === "Escape") { closeTransaction(); e.preventDefault(); }
-      else if (e.key === "Enter") { confirm(); e.preventDefault(); }
+      else if (e.key === "Enter") {
+        if (!incomeCategory.hidden) confirmIncome();
+        else confirm();
+        e.preventDefault();
+      }
     }
   });
 
